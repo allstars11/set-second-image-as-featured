@@ -8,9 +8,6 @@ Author: www.digitalforce.it
 
 define( 'DEBUG', true ); // Set to true to enable debugging, false to disable
 
-
-
-
 function timestamp_logger_log_timestamp() {
  //   echo 'writing the logfile';
     $log_folder = plugin_dir_path(__FILE__) . 'log';
@@ -35,8 +32,8 @@ function logwrite($message){
         // Convert the argument to a string if it's not already
         if (!is_string($message)) {
             $message = print_r($message, true);
-            file_put_contents( $log_file, $message . PHP_EOL, FILE_APPEND );
         }
+        file_put_contents( $log_file, $message . PHP_EOL, FILE_APPEND );
     }
 }
 
@@ -97,6 +94,7 @@ function extract_image_url_from_figure($html) {
 
 
 function my_save_post_function( $post_id ) {
+    logwrite('running my_save_post_function');
     if ( DEBUG ) {
         // Debugging is enabled, include debugging code
         error_reporting( E_ALL );
@@ -110,75 +108,39 @@ function my_save_post_function( $post_id ) {
     
     // Check if this is an autosave
     if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-        if (DEBUG){
-            logwrite('AUTOSAVE exit');
-        }
+        logwrite('AUTOSAVE exit');
         return;
     }
-    // Check if this is a post and not a pagee
+    // Check if this is a post and not a page
     if ( 'post' !== get_post_type( $post_id ) ) {
-        if (DEBUG){
-            logwrite('wrong post type exit');
-        }
+        logwrite('wrong post type exit');
         return;
     }
     // Check if it is a REST Request
     if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
-
-        if (DEBUG){
-            logwrite('REST_REQUEST exit');
-        }
+        logwrite('REST_REQUEST exit');
         return;
     }
-    logwrite('running my_save_post_function');
-    $times = did_action('save_post_{the_post_type}');
-    logwrite ('times = '.$times);
 
-    // Your code to be executed when a post is saved
-    $image_url = extract_image_url_from_figure(get_second_image_url());
-    logwrite( 'url of the second image: ' . $image_url);
-
-    //$image_id = media_sideload_image($url, $post_id, 'Image description.');
-    // Get the image ID from the URL
-    $image_id = attachment_url_to_postid($image_url);
-    logwrite('about to log image_id');
-    $variable_string = print_r($image_id, true);
-    logwrite($variable_string);
-
-    
-    // Set the featured image
-    set_post_thumbnail($post_id, $image_id);
-
-}
-
-
-
-function set_second_image_as_featured($content) {
-    global $post;
-//    global $log_file;
-
-
-    $log_folder = plugin_dir_path(__FILE__) . 'log';
-    $log_file = $log_folder . '/logfile.txt';
-    
-    logwrite ('running set_second_image_as_featured v2  -   ');
-
-
-    if (is_singular() && is_main_query() && !is_page()) {
-   //      echo 'we are in a single post  -   ';
-        $second_image_url = get_second_image_url();
-        if ($second_image_url) {
-   //         echo 'URL of the second image in logfile ';
-            file_put_contents($log_file, 'url: ' . $second_image_url . PHP_EOL, FILE_APPEND);
-            }  else {
-    //        echo 'No second image block found.';
-            }
+    if (has_post_thumbnail($post_id)) {
+            // Post has a featured image
+            logwrite('Post has a featured image.');
         } else {
-     //       echo ' we are not in a single post ---    ';
-    }
+            // Post doesn't have a featured image
+            logwrite('Post does not have a featured image.');
+            $image_url = extract_image_url_from_figure(get_second_image_url());
+            logwrite( 'url of the second image: ' . $image_url);
+            // Get the image ID from the URL
+            $image_id = attachment_url_to_postid($image_url);
+            logwrite('about to log image_id');
+            logwrite($image_id);
+            // Set the featured image
+            logwrite('about to set the featured image');
+            set_post_thumbnail($post_id, $image_id);
+        }
 
-    return $content;
 }
+
 // MAIN
 
 add_action( 'save_post_post', 'my_save_post_function' );
