@@ -3,7 +3,8 @@
 Plugin Name: Set Second Image as Featured
 Description: This plugin sets the second image in a post as the featured image.
 Version: 1.0
-Author: www.digitalforce.it 
+Author: www.digitalforce.it Cesare Capobianco
+License: GPL-3.0 or later
 */
 
 define( 'DEBUG', true ); // Set to true to enable debugging, false to disable
@@ -15,12 +16,10 @@ function timestamp_logger_log_timestamp() {
 
 //     file_put_contents($log_file, ''); // Clear the content of the log file
 
-    file_put_contents($log_file, 'START OF LOGFILE' . PHP_EOL, FILE_APPEND);
-    
     // Write the current timestamp to the log file
     $current_time = current_time( 'timestamp' );
     $timestamp = date( 'Y-m-d H:i:s', $current_time );
-    file_put_contents($log_file, $timestamp . PHP_EOL, FILE_APPEND);
+    file_put_contents($log_file, 'START OF LOGFILE  ------->>>   ' . $timestamp . PHP_EOL, FILE_APPEND);
 }
 
 function logwrite($message){
