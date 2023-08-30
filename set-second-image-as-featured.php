@@ -8,32 +8,6 @@ Author: www.digitalforce.it
 
 define( 'DEBUG', true ); // Set to true to enable debugging, false to disable
 
-function set_second_image_as_featured($content) {
-    global $post;
-//    global $log_file;
-
-
-    $log_folder = plugin_dir_path(__FILE__) . 'log';
-    $log_file = $log_folder . '/logfile.txt';
-    
-    logwrite ('running set_second_image_as_featured v2  -   ');
-
-
-    if (is_singular() && is_main_query() && !is_page()) {
-   //      echo 'we are in a single post  -   ';
-        $second_image_url = get_second_image_url();
-        if ($second_image_url) {
-   //         echo 'URL of the second image in logfile ';
-            file_put_contents($log_file, 'url: ' . $second_image_url . PHP_EOL, FILE_APPEND);
-            }  else {
-    //        echo 'No second image block found.';
-            }
-        } else {
-     //       echo ' we are not in a single post ---    ';
-    }
-
-    return $content;
-}
 
 
 
@@ -96,45 +70,6 @@ function get_second_image_url() {
     return 'no url';
 }
 
-function my_save_post_function( $post_id ) {
-    if ( DEBUG ) {
-        // Debugging is enabled, include debugging code
-        error_reporting( E_ALL );
-        ini_set( 'display_errors', 1 );
-        timestamp_logger_log_timestamp();
-    } else {
-        // Debugging is disabled, suppress error display
-        error_reporting( 0 );
-        ini_set( 'display_errors', 0 );
-    }
-    logwrite('running my_save_post_function');
-    // Check if this is an autosave
-    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-        return;
-    }
-    // Check if this is a post and not a pagee
-    if ( 'post' !== get_post_type( $post_id ) ) {
-        return;
-    }
-    // Check if it is a REST Request
-    if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
-        return;
-    }
-
-    $times = did_action('save_post_{the_post_type}');
-    logwrite ('times = '.$times);
-
-    // Your code to be executed when a post is saved
-    $url = extract_image_url_from_figure(get_second_image_url());
-    logwrite( 'url of the second image: ' . $url);
-
-    $image_id = media_sideload_image($url, $post_id, 'Image description.');
-
-    if (!is_wp_error($image_id)) {
-            // Set the image as the post's featured image
-            set_post_thumbnail($post_id, $image_id);
-    }
-}
 
 function extract_image_url_from_figure($html) {
     // Create a new DOMDocument
@@ -156,6 +91,107 @@ function extract_image_url_from_figure($html) {
     return null;
 }
 
+
+function my_save_post_function( $post_id ) {
+    if ( DEBUG ) {
+        // Debugging is enabled, include debugging code
+        error_reporting( E_ALL );
+        ini_set( 'display_errors', 1 );
+        timestamp_logger_log_timestamp();
+    } else {
+        // Debugging is disabled, suppress error display
+        error_reporting( 0 );
+        ini_set( 'display_errors', 0 );
+    }
+    
+    // Check if this is an autosave
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+        if (DEBUG){
+            logwrite('AUTOSAVE exit');
+        }
+        return;
+    }
+    // Check if this is a post and not a pagee
+    if ( 'post' !== get_post_type( $post_id ) ) {
+        if (DEBUG){
+            logwrite('wrong post type exit');
+        }
+        return;
+    }
+    // Check if it is a REST Request
+    if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+
+        if (DEBUG){
+            logwrite('REST_REQUEST exit');
+        }
+        return;
+    }
+    logwrite('running my_save_post_function');
+    $times = did_action('save_post_{the_post_type}');
+    logwrite ('times = '.$times);
+
+    // Your code to be executed when a post is saved
+    $image_url = extract_image_url_from_figure(get_second_image_url());
+    logwrite( 'url of the second image: ' . $image_url);
+
+    //$image_id = media_sideload_image($url, $post_id, 'Image description.');
+    // Get the image ID from the URL
+    $image_id = attachment_url_to_postid($image_url);
+    logwrite('about to log var_dump');
+    logwrite(var_dump($image_id));
+    
+    // Set the featured image
+    set_post_thumbnail($post_id, $image_id);
+    if(DEBUG){
+
+    };
+
+
+        
+        
+        // Set the featured image
+        set_post_thumbnail($post_id, $image_id);
+/*
+    if (!is_wp_error($image_id)) {
+            // Set the image as the post's featured image
+            set_post_thumbnail($post_id, $image_id);
+    } else {
+        if (DEBUG){
+            logwrite('is_wp_error  ')
+        }
+    }
+
+*/
+}
+
+
+
+function set_second_image_as_featured($content) {
+    global $post;
+//    global $log_file;
+
+
+    $log_folder = plugin_dir_path(__FILE__) . 'log';
+    $log_file = $log_folder . '/logfile.txt';
+    
+    logwrite ('running set_second_image_as_featured v2  -   ');
+
+
+    if (is_singular() && is_main_query() && !is_page()) {
+   //      echo 'we are in a single post  -   ';
+        $second_image_url = get_second_image_url();
+        if ($second_image_url) {
+   //         echo 'URL of the second image in logfile ';
+            file_put_contents($log_file, 'url: ' . $second_image_url . PHP_EOL, FILE_APPEND);
+            }  else {
+    //        echo 'No second image block found.';
+            }
+        } else {
+     //       echo ' we are not in a single post ---    ';
+    }
+
+    return $content;
+}
 // MAIN
 
 add_action( 'save_post_post', 'my_save_post_function' );
