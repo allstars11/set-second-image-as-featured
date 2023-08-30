@@ -26,15 +26,19 @@ function timestamp_logger_log_timestamp() {
     file_put_contents($log_file, $timestamp . PHP_EOL, FILE_APPEND);
 }
 
-function logwrite($log_message){
+function logwrite($message){
     if (DEBUG) {
+
         $log_folder = plugin_dir_path(__FILE__) . 'log';
-         $log_file = $log_folder . '/logfile.txt';
-        file_put_contents( $log_file, $log_message . PHP_EOL, FILE_APPEND );
+        $log_file = $log_folder . '/logfile.txt';
+
+        // Convert the argument to a string if it's not already
+        if (!is_string($message)) {
+            $message = print_r($message, true);
+            file_put_contents( $log_file, $message . PHP_EOL, FILE_APPEND );
+        }
     }
-
 }
-
 
 
 function get_second_image_url() {
@@ -137,31 +141,14 @@ function my_save_post_function( $post_id ) {
     //$image_id = media_sideload_image($url, $post_id, 'Image description.');
     // Get the image ID from the URL
     $image_id = attachment_url_to_postid($image_url);
-    logwrite('about to log var_dump');
-    logwrite(var_dump($image_id));
+    logwrite('about to log image_id');
+    $variable_string = print_r($image_id, true);
+    logwrite($variable_string);
+
     
     // Set the featured image
     set_post_thumbnail($post_id, $image_id);
-    if(DEBUG){
 
-    };
-
-
-        
-        
-        // Set the featured image
-        set_post_thumbnail($post_id, $image_id);
-/*
-    if (!is_wp_error($image_id)) {
-            // Set the image as the post's featured image
-            set_post_thumbnail($post_id, $image_id);
-    } else {
-        if (DEBUG){
-            logwrite('is_wp_error  ')
-        }
-    }
-
-*/
 }
 
 
